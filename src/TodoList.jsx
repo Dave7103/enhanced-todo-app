@@ -4,10 +4,12 @@ export default function TodoList() {
     const [tasks, setTasks] = useState([]);
     const [task, setTask] = useState("");
     const [filter, setFilter] = useState("all");
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editText, setEditText] = useState("");
 
     const addTask = () => {
         if (task.trim() === "") return;
-        setTasks([...tasks, { text: task, completed: false, editing: false }]);
+        setTasks([...tasks, { text: task, completed: false }]);
         setTask("");
     };
 
@@ -17,11 +19,16 @@ export default function TodoList() {
         setTasks(newTasks);
     };
 
-    const editTask = (index, newText) => {
+    const startEditing = (index) => {
+        setEditingIndex(index);
+        setEditText(tasks[index].text);
+    };
+
+    const saveTask = (index) => {
         const newTasks = [...tasks];
-        newTasks[index].text = newText;
-        newTasks[index].editing = false;
+        newTasks[index].text = editText;
         setTasks(newTasks);
+        setEditingIndex(null);
     };
 
     const deleteTask = (index) => {
@@ -50,19 +57,24 @@ export default function TodoList() {
             <ul>
                 {filteredTasks.map((t, index) => (
                     <li key={index} className={t.completed ? "completed" : ""}>
-                        {t.editing ? (
-                            <input
-                                type="text"
-                                defaultValue={t.text}
-                                onBlur={(e) => editTask(index, e.target.value)}
-                                autoFocus
-                            />
-                        ) : (
-                            <span onDoubleClick={() => (t.editing = true)}>{t.text}</span>
-                        )}
                         <input type="checkbox" checked={t.completed} onChange={() => toggleComplete(index)} />
-                        <button onClick={() => (t.editing = true)}>Edit</button>
-                        <button onClick={() => deleteTask(index)}>Delete</button>
+                        {editingIndex === index ? (
+                            <>
+                                <input
+                                    type="text"
+                                    value={editText}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                />
+                                <button onClick={() => saveTask(index)}>Save</button>
+                                <button onClick={() => setEditingIndex(null)}>Cancel</button>
+                            </>
+                        ) : (
+                            <>
+                                <span>{t.text}</span>
+                                <button onClick={() => startEditing(index)}>Edit</button>
+                                <button onClick={() => deleteTask(index)}>Delete</button>
+                            </>
+                        )}
                     </li>
                 ))}
             </ul>
